@@ -23,7 +23,7 @@ AppLayer brings a myriad of options for blockchain developers such as:
 * **Natively-coded contracts** - developers can code their contracts directly in the blockchain's native language, bypassing extra layers of abstraction to leverage the full potential of AppLayer
 * **Out-of-the-box support for Solidity contracts** - those who already have contracts coded in Solidity can use AppLayer's built-in, natively-coded EVM as a drop-in replacement
 * **Stateful pre-compiles** - Solidity contracts can use stateful pre-compiles from our built-in EVM to achieve a higher performance compared to conventional EVMs
-* **State-of-the-art consensus protocol** - our consensus engine is currently powered by [CometBFT](https://cometbft.com/), but we have plans for expanding beyond it (see the [Future Plans](future-plans/README.md) section for more info)
+* **State-of-the-art consensus protocol** - our consensus engine is currently powered by [CometBFT](https://cometbft.com/), but we have plans for expanding beyond it (see the Future Plans section for more info)
 * **Validators** - our network is executed and secured by a type of node we call "Validator", responsible for creating, gathering and signing data on blocks, as well as generating a "randomness" seed used to select the next block creator in the chain
 
 ## Potential use cases
