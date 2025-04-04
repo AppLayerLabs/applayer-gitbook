@@ -18,7 +18,7 @@ Go to the [MetaMask](https://metamask.io/) website and click or tap on "Get Meta
 
 After installation, open MetaMask and you'll be greeted with a welcome screen and two buttons - one for creating a new wallet, and another for importing an existing wallet using a backup seed.
 
-People familiar with crypto might already have a backup seed of their wallet - they would ideally just choose "Import an existing wallet", import their seed and skip straight to the next section. But we're assuming the perspective of a new user who has never used a crypto wallet before, so we'll go through with creating a new wallet from scratch.
+People familiar with crypto might already have a backup seed of their wallet - they would ideally just choose "Import an existing wallet", import their seed and skip straight to the next section. Since we're assuming the perspective of a new user who has never used a crypto wallet before, we'll create a new wallet from scratch.
 
 The first step is to check the "I agree to MetaMask's Terms of use" box and choose the "Create a new wallet" option, as shown here:
 
@@ -36,7 +36,7 @@ Once you have a good enough password, type it on the box, re-type it to confirm,
 
 ### Storing the wallet's backup seed
 
-MetaMask will then ask you to secure your wallet by noting down your secret recovery phrase (also known as a "seed" or "backup seed"). We ***STRONGLY*** recommend you do this, as that's the ***ONLY*** way you can recover your wallet in case something bad happens to it. You should also ***NEVER*** show or share it to ***ANYONE***, as that'll give them access to your wallet. Just like with your password, you should note it down and store it on a safe and secure place only you know.
+MetaMask will then ask you to secure your wallet by noting down your secret recovery phrase (also known as a "seed" or "backup seed"). We ***STRONGLY*** recommend you do this, as that's the ***ONLY*** way you can recover your wallet in case something bad happens to it. ***NEVER*** show or share it to ***ANYONE*** either, as that'll give them direct access to your funds. Just like with your password, you should note it down and store it on a safe and secure place only you know.
 
 We can't stress this enough. Always keep in mind: *"Not your keys, not your coins"*.
 

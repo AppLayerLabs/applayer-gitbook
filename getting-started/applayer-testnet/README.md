@@ -4,7 +4,11 @@ description: The playground for AppLayer's future endeavours
 
 # AppLayer Testnet
 
-We have a testnet for developers and users to, well, test the network! It is highly recommended to start here before going to the mainnet, as is the case with any other blockchain. We'll be using the [Remix IDE](https://remix.ethereum.org) as a tool to aid us in deploying contracts in the network.
+We have a testnet for developers and users to, well, test the network! It is highly recommended to start here before going to the mainnet, as is the case with any other blockchain.
+
+We'll be using the [Remix IDE](https://remix.ethereum.org) as a tool to aid us in deploying contracts in the network. It is recommended to have some basic knowledge on how to operate it.
+
+For compatibility purposes, **set the EVM in Remix to "Shanghai"** before using it, as that is the version our network currently supports.
 
 ## Switching to the testnet
 
