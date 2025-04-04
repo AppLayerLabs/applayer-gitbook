@@ -1,36 +1,12 @@
 ---
-description: A hands-on guide for interacting with the AppLayer Testnet
+description: A hands-on guide for interacting with contracts in the AppLayer Testnet
 ---
 
-# Getting started with AppLayer Testnet
+# Deploying contracts (Testnet)
 
-Here's a simple guide on how to start developing with AppLayer and the Blockchain Development Kit (BDK). We'll be using the [Remix IDE](https://remix.ethereum.org) as a tool to aid us in deploying contracts in the network.
+Here's a simple guide on how to deploy both precompiled (C++) and EVM (Solidity) contracts on the AppLayer Testnet. Check the Contracts section for deeper details on how it all works.
 
-### Step 1 - Switching to the AppLayer Testnet
-
-First, make sure you have set your preferred Web3 frontend (e.g. MetaMask) to connect to the AppLayer Testnet. Configuration is as follows:
-
-* **Network Name**: AppLayer Testnet
-* **RPC URL**: https://testnet-api.applayer.com/
-* **Chain ID**: 75338
-* **Currency Symbol**: APPL
-* **Block Explorer URL**: https://testnet-explorer.applayer.com/
-
-Here's a video showing the configuration on MetaMask as an example:
-
-{% file src=".gitbook/assets/applayer_step1.mp4" %}
-
-### Step 2 - Claiming your AppLayer Tokens
-
-To claim your APPL tokens on the testnet, open our [testnet faucet website](https://testnet-faucet.applayer.com/), enter your testnet address there and click on the "Request Tokens" button.
-
-**Please note that MetaMask might take up to 5 minutes to update your balance.** If the faucet displays "Tokens requested and transferred successfully", the operation has been successful, so please be patient.
-
-Check this example video showing how to claim APPL tokens using a MetaMask address:
-
-{% file src=".gitbook/assets/applayer_step2.mp4" %}
-
-### Step 3 - Deploying C++ contracts
+## Deploying C++ contracts
 
 To deploy a C++ contract on the testnet, open Remix IDE and then compile this Solidity interface in it:
 
@@ -55,17 +31,17 @@ interface ContractManager {
 }
 ```
 
-This will allow you to call the `ContractManager` precompiled contract and use it to deploy any of the available precompiles on the blockchain. Precompile deploys cost 100,000 gas each.
+This will allow you to call the `ContractManager` precompiled contract and use it to deploy any of the available precompiled contracts on the blockchain. Precompiled contract deploys cost 100,000 gas each.
 
 To find out the address of your deployed contract, call the `getDeployedContractsForCreator()` function, passing the `ContractManager` address itself as the argument. The address for ContractManager is hardcoded to `0x0001cb47ea6d8b55fe44fdd6b1bdb579efb43e61`.
 
 See the example video that deploys an ERC20 contract:
 
-{% file src=".gitbook/assets/applayer_step3.mp4" %}
+{% file src=".gitbook/assets/applayer_testnet_contract_step1.mp4" %}
 
-### Step 4 - Deploying EVM contracts
+## Deploying EVM contracts
 
-Deploying a Solidity/EVM contract on the testnet is done just like with Ethereum. The AppLayer EVM is set to "Shanghai", so be sure to set Remix to the same version before compiling. Check the video below for an example on the following contract:
+Deploying a Solidity/EVM contract on the testnet is done just like Ethereum. **The AppLayer EVM is set to "Shanghai"**, so be sure to set Remix to the same version before compiling. Check the video below for an example on the following contract:
 
 ```solidity
 // contracts/GLDToken.sol
@@ -81,9 +57,9 @@ contract AnotherTestToken is ERC20 {
 }
 ```
 
-{% file src=".gitbook/assets/applayer_step4.mp4" %}
+{% file src=".gitbook/assets/applayer_testnet_contract_step2.mp4" %}
 
-### Step 5 (Optional) - Using randomness in EVM contracts
+## (Optional) Using randomness in EVM contracts
 
 You can also use one of our on-chain precompiles called `BDKPrecompile` to fetch random numbers generated on the fly. It is only accessed by the EVM through the following Solidity interface:
 
@@ -126,10 +102,10 @@ contract RandomnessTest {
 }
 ```
 
-Compile this code in Remix IDE (with the EVM set to "Shanghai", like done in the previous step) and deploy the `RandomnessTest` contract. Once it is deployed call the `setRandom` function to initialize it, and then call the `getRandom` function to get a random number.
+Compile this code in Remix IDE (**remember to set the EVM to "Shanghai"**, like in the previous step) and deploy the `RandomnessTest` contract. Once it is deployed call the `setRandom` function to initialize it, and then call the `getRandom` function to get a random number.
 
 **If you are using the interface in a view function, be aware that two different executions will always result in a different value (if called by RPC).** This is done on purpose, as the random value is only decided when the transaction is included in a block and it is generated in a cryptographically secure manner, making it impossible to predict the value. For the `RandomnessTest` contract specifically, due to how it is coded, if you want a new random number you must call `setRandom` again before calling `getRandom` the next time.
 
 See the following video as an example:
 
-{% file src=".gitbook/assets/applayer_step5.mp4" %}
+{% file src=".gitbook/assets/applayer_testnet_contract_step3.mp4" %}
