@@ -1,42 +1,41 @@
 ---
-description: A web application for testing your contracts.
+description: A web application for testing your contracts
 ---
 
 # Contract Tester
 
-We have developed a web application called [Contract Tester](https://github.com/AppLayerLabs/contract-tester), for testing the logic of customized contracts in a simple, fast and intuitive way.
+We have also developed a web application called [Contract Tester](https://github.com/AppLayerLabs/contract-tester), for testing the logic of customized contracts in a simple, fast and intuitive way.
 
-## Cloning the repository
+It is assumed that you have read the previous sections before this one, have your environment setup and a local testnet already running in your machine. Some parts of the page may also require that you have read the Contract sections as it deals with deploying custom contracts.
 
-First, clone the repository to your local device:
+## Cloning and deploying
+
+First, clone the repository to your local device and move to it:
 
 ```bash
 git clone https://github.com/AppLayerLabs/contract-tester
 cd contract-tester
 ```
 
-## Deploying a local testnet
-
-As you're testing the interaction of your customized contracts with the AppLayer testnet, you should configure your environment and run a local testnet. See "Setting up the development environment" for more info.
-
-**Deploying the application**
-
-You can deploy the web application in two ways: _using Docker_, or _manually_.
-
 ### Using Docker (recommended)
 
-Install Docker on your system (if you don't have it installed already). Instructions for your system can be found at the links below:
+Similar to the BDK, you can deploy the web application in two ways: _using Docker_, or _manually_. We recommend using Docker, so make sure it is installed in your system:
 
 * [Docker for Windows](https://docs.docker.com/docker-for-windows/install/)
 * [Docker for Mac](https://docs.docker.com/docker-for-mac/install/)
 * [Docker for Linux](https://docs.docker.com/desktop/install/linux-install/)
 
-After installing Docker, build the image and run the container:
+On Linux, you may need to run Docker commands as `sudo`, or you can follow [this post-install](https://docs.docker.com/engine/install/linux-postinstall/) so you don't have to. Command examples will be shown without `sudo` for simplicity purposes.
+
+After installing Docker, build the image:
 
 ```bash
-# Build the image
 docker build -t contract-tester .
-# Run the container
+```
+
+Then run the container:
+
+```bash
 docker run -p 3000:3000 contract-tester
 ```
 
@@ -44,13 +43,13 @@ docker run -p 3000:3000 contract-tester
 
 If you use VSCode as code editor, you can integrate it with the container. To do so, you need to install the [Docker extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) and configure it to use the container. After installing it, there is a `docker-compose.yml` file on the root of the repository that you can use to build and run the container.
 
-Right-click on it and select `Compose Up` to build and run the container, so the application will be deployed on `http://localhost:3000` (or the port you chose in the `docker-compose.yml` file). You can also use the `Compose Restart` option to restart the container, and `Compose Down` to stop and remove the container.
+Right-click on it and select `Compose Up` (or run `docker compose up` in a terminal) to build and run the container, so the application will be deployed on `http://localhost:3000` (or the port you chose in the `docker-compose.yml` file). You can also use the `Compose Restart` option to restart the container, and `Compose Down` to stop and remove the container.
 
 <figure><img src="../.gitbook/assets/VSCodeDockerExtension (2).gif" alt=""><figcaption><p>VSCode Docker integration</p></figcaption></figure>
 
 ### Manual setup
 
-If you want to run the project manually, you will need to install the following dependencies:
+If you want to deploy the web application manually, you will need to install [NPM](https://www.npmjs.com/) along with a few dependencies:
 
 ```bash
 sudo apt install npm
@@ -58,11 +57,9 @@ sudo npm install --global yarn
 npm install next react@latest react-dom
 ```
 
-Then, clone the repository, install the yarn dependencies and run the project:
+Then, install the yarn dependencies and run the project:
 
 ```bash
-git clone https://github.com/AppLayer/contract-tester.git
-cd contract-tester
 yarn install
 yarn build
 yarn start
@@ -70,7 +67,7 @@ yarn start
 
 ## Using the application
 
-You should now be able to access the contract tester through `http://localhost:3000` (or the port you chose in the previous step). The application should look like this:
+You should now be able to access the Contract Tester through `http://localhost:3000` (or the port you chose in the previous step). The application should look like this:
 
 <figure><img src="../.gitbook/assets/TESTER_01.png" alt=""><figcaption><p>Main page of the application</p></figcaption></figure>
 
@@ -95,7 +92,7 @@ After that, you should wait for the transaction to be mined and the contract to 
 
 If you want to create a custom version of `ContractManager`, you will need to follow these steps:
 
-1. Deploy the custom contract to the network (see "Creating a Dynamic Contract (Simple) > Deploying and testing" for more info on how to do it)
+1. Deploy the custom contract to the network (see the Contract sections for more info on how to do it)
 2. Take the custom contract address and put it at the top, in the “Contract Manager Address” field
 3. Add the custom contract's ABI by clicking the button next to the "Enter your own JSON ABI" label, choosing your JSON ABI file, and then clicking "Upload"
 4. Finally, click the “Get Functions” button to show the custom contract's functions and input fields
@@ -116,7 +113,7 @@ First, make sure the contract is defined and added to the Contract Manager so yo
 
 **NOTE**: If you are passing an array as input values, just separate them using commas and the application will make all the necessary changes.
 
-Let's use the `SimpleContract` example because we already registered it earlier in the Contract Manager section. First, develop the contract and deploy it to the network. After that, you can use the Contract Tester to interact with it. The solidity code for the contract is:
+Let's use the `SimpleContract` example because it is already built-in to BDK and registered in `ContractManager`. First, develop the contract and deploy it to the network. After that, you can use the Contract Tester to interact with it. The Solidity code for the contract is:
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -156,7 +153,7 @@ contract SimpleContract {
 }
 ```
 
-We can use our own ABI generator tool described in the "Deploying and testing" section of the SimpleContract docs, or a third-party one like [Remix IDE](https://remix.ethereum.org) to generate the contract ABI. If using Remix, first create a Solidity file (.sol extension) and paste the code above. After that, you can compile the contract by clicking on the "Compile" button on the left sidebar. You should see something like this:
+We can use our own ABI generator tool (see the Contract sections), or a third-party one like [Remix IDE](https://remix.ethereum.org) to generate the contract ABI. If using Remix, first create a Solidity file (.sol extension) and paste the code above. After that, you can compile the contract by clicking on the "Compile" button on the left sidebar. You should see something like this:
 
 <figure><img src="../.gitbook/assets/ContractTesterRemixIDE.png" alt=""><figcaption><p>Ethereum Remix IDE</p></figcaption></figure>
 
@@ -265,4 +262,4 @@ Now, you can use the Contract Tester to interact with the deployed `SimpleContra
 
 <figure><img src="../.gitbook/assets/TESTER_03.png" alt=""><figcaption><p>Testing calls to a custom contract</p></figcaption></figure>
 
-Now you can interact with the contract. You can set the name and value by using the "setName" and "setValue" functions, and get the name and value by using the "getName" and "getValue" functions. You can also check the transactions on Metamask.
+Now you can interact with the contract. You can set the name and value by using the "setName" and "setValue" functions, and get the name and value by using the "getName" and "getValue" functions. You can also check the transactions on MetaMask.
