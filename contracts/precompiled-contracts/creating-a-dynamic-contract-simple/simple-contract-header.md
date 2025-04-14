@@ -1,12 +1,12 @@
 ---
-description: Coding the Simple Contract's header file
+description: Coding the SimpleContract's header file
 ---
 
 # Simple Contract Header
 
 Having created the `SimpleContract` files and registered them in CMake, let's implement the contract's header first, as most of the registration is done there.
 
-## Declaring the Contract Class
+## Declaring the contract class
 
 Open the header file (`simplecontract.h`) and add the following lines:
 
@@ -37,9 +37,9 @@ This is a simple skeleton so we can start building the proper contract. From top
 
 Now we can declare the members of our contract. We have to pay attention to some rules described earlier, which we'll go through slowly, one part at a time.
 
-## Declaring the Contract Variables
+## Declaring contract variables
 
-Variables MUST be `private` and MUST inherit one of the SafeVariable classes. So our class declaration would start with something like this:
+Variables MUST be `private` and MUST inherit one of the SafeVariable classes (so the blockchain state can be aware of them). Our class declaration would start with something like this:
 
 ```cpp
 class SimpleContract : public DynamicContract {
@@ -51,13 +51,13 @@ class SimpleContract : public DynamicContract {
 }
 ```
 
-Our three variables `name_`, `number_` and `tuple_` are respectively declared as a `SafeString`, `SafeUint256_t` and `SafeTuple<std::string, uint256_t>`. Notice we can use primitive types inside the tuple just fine, as the contract's inner variables already ensure commit/revert safety due to their types being inherited from their SafeVariable counterparts.
+Our three variables `name_`, `number_` and `tuple_` are respectively declared as a `SafeString`, `SafeUint256_t` and `SafeTuple<std::string, uint256_t>`. Notice we can use primitive types inside the tuple just fine, as the SafeVariable type itself ensures the necessary commit/revert safety of its children types.
 
-## Declaring the Contract Functions
+## Declaring contract functions
 
-Functions in general can return either `void` or an ABI-supported C++ type (see the correlation on Solidity ABI). The main difference between both is that **view** functions MUST be `const` (e.g. `getName() const;`), while **non-view** functions MUST NOT be `const` (e.g. `setName(std::string name);`).
+Functions in general can return either `void` or an ABI-supported C++ type (see the correlations on the "Solidity ABI" section). The main difference is that **view** functions MUST be `const` (e.g. `getName() const;`), while **non-view** functions MUST NOT be `const` (e.g. `setName(std::string name);`).
 
-For the two registering functions, `registerContract()` MUST be `public static void`, and `registerContractFunctions()` MUST be `private void override`. For the `dump()` function, it MUST be `const override` and return a `DBBatch` object.
+For the two registering functions, `registerContract()` MUST be `public static void`, and `registerContractFunctions()` MUST be `private void override`. For the `dump()` function, it MUST be `const override` and return a `DBBatch` object:
 
 ```cpp
 class SimpleContract : public DynamicContract {
@@ -85,7 +85,7 @@ class SimpleContract : public DynamicContract {
 
 Just like with the tuple variable, we can use primitive types and returns on functions just fine, for the same reasons stated above. This also extends to constructors, whch we'll see below.
 
-## Declaring the Contract Constructor
+## Declaring contract constructors
 
 Like any C++ derived class, we must call its base class constructor and pass the proper arguments to it (besides the arguments for the derived class itself) so it can be constructed properly. Any contract derived from `DynamicContract` MUST have *two* constructors - one for creating a new contract from scratch, and another for loading the contract from the database:
 
@@ -130,7 +130,7 @@ DynamicContract(
 ) : BaseContract(address, db) {};
 ```
 
-`address`, `creator`, `chainId` and `db` are internal variables used by the base class, and should *always* be declared *last*. They are equivalent to:
+`address`, `creator`, `chainId` and `db` are internal variables used by the base class, and should *always* be declared *last* (as in, *after* the contract's own variables if they exist). They are equivalent to:
 
 | DynamicContract constructor argument | Taken from                                  |
 | ------------------------------------ | ------------------------------------------- |
@@ -139,11 +139,11 @@ DynamicContract(
 | chainId                              | this->options->getChainID()                 |
 | DB                                   | this->db                                    |
 
-Keep in mind that, when calling the base class constructor later on, the contract's name argument (in this case, "SimpleContract") MUST be EXACTLY the same as your contract's class name. This is because the name is used to load the contract type from the database, so incorrectly naming it will result in a segfault at load time.
+Keep in mind that, when defining the base class constructor later on in the `.cpp` file, the contract's name argument (in this case, "SimpleContract") MUST be EXACTLY the same as your contract's class name. This is because the name is used to load the contract type from the database, so incorrectly naming it will result in a segfault at load time.
 
-## Declaring the Contract Events
+## Declaring contract events
 
-Events MUST be `public`, `void`, non-`const`, AND call an internal function named `emitEvent()`, which is available to all Dynamic Contracts and does the proper emission of the event.
+If your contract has events, they MUST be `public`, `void`, non-`const`, AND call an internal function named `emitEvent()`, which is available to all Dynamic Contracts and does the proper emission of the event:
 
 ```cpp
 class SimpleContract : public DynamicContract {
@@ -174,14 +174,15 @@ class SimpleContract : public DynamicContract {
 
 `emitEvent()` requires at most three arguments:
 
-* The event name (you can just pass `__func__` which is the same as `this->emitEvent("nameChanged", ...)`)
+* The event name (you can just pass `__func__` which is the same as e.g. `this->emitEvent("nameChanged", ...)`)
 * **(Optional)** A tuple of `EventParam` objects representing the event's arguments, where:
   * The first element is the argument type (e.g. `name` is a `std::string`, `number` is a `uint256_t`, `tuple` is a `std::tuple<std::string, uint256_t>`)
-  * The second element is a bool that indicates whether the argument should be indexed or not.
+  * The second element is a bool that indicates whether the argument should be indexed or not
   * If your event has no arguments at all you can omit it or pass an empty tuple instead (e.g. `this->emitEvent(__func__, std::make_tuple())`)
-* **(Optional)** A flag that indicates whether the event is anonymous or not. Events are non-anonymous by default (the flag defaults to `false`), so if you wish you can omit this (which is the case for our example, it is equivalent to `this->emitEvent(__func__, std::make_tuple(name), false)` - if it was an anonymous event, the last flag would be `true` instead)
+* **(Optional)** A flag that indicates whether the event is anonymous or not
+  * Events are non-anonymous by default (the flag defaults to `false`), so if you wish you can omit this (which is the case for our example, it is equivalent to `this->emitEvent(__func__, std::make_tuple(name), false)` - if it was an anonymous event, the last flag would be `true` instead)
 
-## Registering the Contract Class
+## Registering the contract class
 
 One last thing we have to do within our header is properly register the contract class. All Dynamic Contracts use templating to automate most of the hard work for both our contract and the BDK.
 
@@ -198,7 +199,7 @@ class SimpleContract : public DynamicContract {
 }
 ```
 
-Then, implement the `registerContract()` function declared previously by calling another function from `ContractReflectionInterface` called `registerContractMethods()`, passing a few arguments to it, like this:
+Then, implement the `registerContract()` function declared previously by calling a function from the `ContractReflectionInterface` class called `registerContractMethods()`, passing a few arguments to it, like this:
 
 ```cpp
 class SimpleContract : public DynamicContract {
@@ -207,7 +208,6 @@ class SimpleContract : public DynamicContract {
     static void registerContract() {
       ContractReflectionInterface::registerContractMethods<
         SimpleContract, const std::string&, const uint256_t&, const std::tuple<std::string, uint256_t>&,
-        ContractManagerInterface&,
         const Address&, const Address&, const uint64_t&, const DB&
       >(
         std::vector<std::string>{"name_", "number_", "tuple_"},
@@ -228,30 +228,32 @@ class SimpleContract : public DynamicContract {
 
 Inside the chevrons (`registerContractMethods<...>()`):
 
-* The first argument is the contract's class type (in this case, `SimpleContract`)
+* The first argument is the contract's class type (in this case, `SimpleContract` - *no quotes ""*)
 * The following arguments are all the types of arguments inside its first constructor (from scratch - the same ones that were put inside `ConstructorArguments`) - you can copy-paste the constructor's arguments as-is and take out the names
-  * It's important to remember that contract arguments should be declared *before* the internal arguments used by the base class constructor, as stated in the previous step
+  * It's important to remember that contract arguments should be declared *before* the internal arguments used by the base class constructor, as stated previously
 
 Inside the parentheses (`registerContractMethods<>(...)`):
 
-* The first argument is a string vector that is a list of all the exact names of the arguments in the constructor, each one separated by a comma - in this case, `"name_"`, `"number_"` and `"tuple_"`
-  * Note this does not include arguments used by the base class' constructor (e.g. `interface`, `address`, `creator`, `chainId`, `db`), only the ones inherent to the contract itself
-* The following arguments are tuples, one for each function from the contract, that contain respectively:
+* The first argument is a string vector that is a list of all the exact names of the arguments in the constructor, each one separated by a comma - in this case, `"name_"`, `"number_"` and `"tuple_"`. If the contract has no variables in it, you can pass an empty list instead
+  * This does not include arguments used by the base class' constructor (e.g. `interface`, `address`, `creator`, `chainId`, `db`), only the ones inherent to the contract itself
+* The following arguments are tuples, one for each implemented contract function, that contain respectively:
   * The exact name of the function (`"getName"`)
   * A reference to the function itself (`&SimpleContract::getName`) - if you happen to have one or more overloads of the same function, you may need to specify which function is which using `static_cast` (e.g. `getNumber()` would be registered as `static_cast<uint256_t(SimpleContract::*)() const>(&SimpleContract::getNumber)`, while `getNumber(const uint256_t&)` would be registered as `static_cast<uint256_t(SimpleContract::*)(const uint256_t&) const>(&SimpleContract::getNumber)`)
-  * The [state mutability](https://docs.soliditylang.org/en/latest/contracts.html#state-mutability) of said function, accessed by a `FunctionTypes` enum (available values are `"View"`, `"NonPayable"` and `"Payable"`)
-  * A string vector that is the list of arguments that the function takes, if any (or a blank list if none)
+  * The [state mutability](https://docs.soliditylang.org/en/latest/contracts.html#state-mutability) of said function, accessed by a `FunctionTypes` enum - available values are `"View"`, `"NonPayable"` and `"Payable"`
+  * A string vector that is the list of arguments that the function takes, if any (or an empty list if none)
 
-Every contract MUST have both `ConstructorArguments` and `registerContract()` implemented in order to be registered, even if `ConstructorArguments` is empty (has no arguments at all).
+Every contract MUST have both `ConstructorArguments` AND `registerContract()` implemented in order to be registered, even if `ConstructorArguments` is empty (has no arguments at all).
 
-If your contract has events, you should also register them so you can generate their ABI later on. Events are registered the same way as the contract class and its functions, but using a separate function from `ContractReflectionInterface` called `registerContractEvents()`.
+## Registering contract events
+
+If your contract has events, you should also register them so you can generate their ABI later on. Events are registered the same way as the contract class and its functions, but using a separate function from `ContractReflectionInterface` called `registerContractEvents()`:
 
 ```cpp
 class SimpleContract : public DynamicContract {
   public:
     // ...
     static void registerContract() {
-      // registerContract() called here
+      // ContractReflectionInterface::registerContractMethods() called here
       ContractReflectionInterface::registerContractEvents<SimpleContract>(
         std::make_tuple("nameChanged", false, &SimpleContract::nameChanged, std::vector<std::string>{"name"}),
         std::make_tuple("numberChanged", false, &SimpleContract::numberChanged, std::vector<std::string>{"number"}),
@@ -261,16 +263,18 @@ class SimpleContract : public DynamicContract {
 }
 ```
 
-Inside the chevrons (`registerContractEvents<...>()`), the only argument is the contract's class name (in this case, `SimpleContract`).
+Inside the chevrons (`registerContractEvents<...>()`), the only argument is the contract's class name (in this case, `SimpleContract` - again, *no quotes ""*).
 
-Inside the parentheses (`registerContractEvents<>(...)`):
+Inside the parentheses (`registerContractEvents<>(...)`), much like the other register function, there is one tuple per implemented event, that contain respectively:
 
-* The first argument is the event's name (`"nameChanged"`)
-* The second argument is a flag indicating whether the event is anonymous or not
-* The third argument is a reference to the event itself (`&SimpleContract::nameChanged`)
-* The last argument is a string vector that is the list of parameters that the event takes, if any (or a blank list if none)
+* The event's name (`"nameChanged"`)
+* A flag indicating whether the event is anonymous or not
+* A reference to the event itself (`&SimpleContract::nameChanged`)
+* A string vector that is the list of parameters that the event takes, if any (or an empty list if none)
 
-Finally, we go to the `src/contract/customcontracts.h` file, include our contract's header and add it to the `ContractTypes` tuple.
+## Registering the contract in the blockchain
+
+Finally, we go to `src/contract/customcontracts.h`, include our contract's header and add it to the `ContractTypes` tuple so it can be compiled alongside the blockchain:
 
 ```cpp
 // ...some includes ...

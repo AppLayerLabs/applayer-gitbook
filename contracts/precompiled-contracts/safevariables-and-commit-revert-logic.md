@@ -1,10 +1,10 @@
 ---
-description: How we simulate Solidity commit/revert logic in precompiled contracts.
+description: How we simulate Solidity commit/revert logic in precompiled contracts
 ---
 
 # SafeVariables and commit/revert logic
 
-In C++, when you call a function that changes a variable and then throw an exception later, the changed variable is *not* reverted automatically. Consider the following example:
+In C++, when you call a function that modifies a variable and then throws an exception, the changed variable is *not* reverted automatically. Consider the following example:
 
 ```cpp
 MyClass::updateValueAndThrow(const uint64_t key, const uint64_t value) {
@@ -29,11 +29,11 @@ MyClass::updateValueAndThrow(const uint64_t key, const uint64_t value) {
 }
 ```
 
-For Protocol Contracts, that's most of the required context. Dynamic Contracts, however, automatically provide their functionality with the use of special types called **SafeVariables**, declared inside the `src/contract/variables` folder. Each Dynamic Contract includes a vector of references to SafeVariables, which is used to register used variables within a specific function call.
+For Protocol Contracts, that's most of the required context. Dynamic Contracts, however, automatically provide this kind of functionality with the use of special types called **SafeVariables**, declared inside the `src/contract/variables` folder. Each Dynamic Contract includes a vector of references to SafeVariables, which is used to register used variables within a specific function call.
 
 All SafeVariables inherit from the `SafeBase` class, which adhere to the following rules:
 
-* Have two internal variables: one for the current/original value and another for the previous/temporary value
+* Have two internal variables: one for the current value and another for the previous value
   * Optionally, if required, an undo stack for dealing with more complex variables such as containers
 * Must override the `commit()` and `revert()` functions
   * `commit()` should keep the current value as-is and either discard the previous one or equal it to the current, depending on the implementation details

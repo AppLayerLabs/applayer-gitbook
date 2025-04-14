@@ -1,5 +1,5 @@
 ---
-description: A walkthrough on a more advanced Dynamic Contract usage.
+description: A walkthrough on a more advanced DynamicContract usage
 ---
 
 # Creating a Dynamic Contract (Advanced)
@@ -129,13 +129,13 @@ Here, we recreated the contract's functions but also added a few extra functions
 
 * Two constructors - one for creating the contract from scratch, and another for loading it from the database
 * The `ConstructorArguments` tuple, `registerContract()` and `registerContractFunctions()` functions for proper contract registering (notice that the tuple is required, even though it's empty)
-* The `dump()` function for saving the contract's variables
-* Private SafeVariables (in this case, `SafeUnorderedMap`) to handle the contract's variables
+* The `dump()` function for saving the contract's variables in the database
+* Private SafeVariables (in this case, `SafeUnorderedMap`) to handle the contract's data
 * The contract's functions according to the Solidity signatures
 
-Like in SimpleContract's case, you must include your contract's header in `customcontracts.h` to register it, and check it's set to generate its ABI through `main-contract-abi.cpp`. In this specific case for `ERC20Wrapper`, it's assumed that both steps are already done, but it's good to check again just in case.
+Like with `SimpleContract`, you must include your contract's header in `src/contract/customcontracts.h` to register it, and check it's set to generate its ABI in `src/bins/contractabigenerator/main.cpp`. In this specific case for `ERC20Wrapper`, it's assumed that both steps are already done, but it's good to check again just in case.
 
-## Implementing the contract constructors and dumping function
+## Implementing contract constructors and dump function
 
 Inside `erc20wrapper.cpp`, let's implement both constructors and the dumping function:
 
@@ -146,7 +146,7 @@ ERC20Wrapper::ERC20Wrapper(const Address& contractAddress, const DB& db
 ) : DynamicContract(contractAddress, db), tokensAndBalances_(this)
 {
   for (const auto& dbEntry : db.getBatch(this->getNewPrefix("tokensAndBalances_"))) {
-    bytes::View valueView(dbEntry.value);
+    View<Bytes> valueView(dbEntry.value);
     this->tokensAndBalances_[Address(dbEntry.key)][Address(valueView.subspan(0, 20))] = Utils::fromBigEndian<uint256_t>(valueView.subspan(20));
   }
 
@@ -183,11 +183,11 @@ DBBatch ERC20Wrapper::dump() const {
 }
 ```
 
-One constructor will create a new contract from scratch, as there is no previous existing contract to load, while the other will load the contract from the database when it already exists there. On both cases you are required to initialize, commit and enable registering for _all_ the variables of your contract by hand within the `DynamicContract` constructor, as well as calling `registerContractFunctions()`, all in the same order as explained in the previous subchapter. The dumping function on the other hand is responsible for saving the current information within the contract back to the database.
+One constructor will create a new contract from scratch, as there is no previous existing contract to load, while the other will load the contract from the database when it already exists there. On both cases you are required to initialize, commit and enable registering for *all* the existing SafeVariables in your contract's constructors, as well as calling `registerContractFunctions()`, all in the same order as explained in the previous subchapter. The dumping function on the other hand is responsible for saving the current information within the contract back to the database.
 
-Notice that your contract's name ("ERC20Wrapper") is the same as your contract's class name (`ERC20Wrapper`) - again, just like with SimpleContract, this match is **mandatory**, otherwise a segfault will happen. `getNewPrefix()` does the same as `getDBPrefix()`, but with a user-defined string appended to it, so this would be equivalent to `DBPrefix::contracts` + the contract's address + `tokensAndBalances_`.
+Notice that your contract's name ("ERC20Wrapper") is the same as your contract's class name (`ERC20Wrapper`) - again, just like with `SimpleContract`, this match is **mandatory**, otherwise a segfault will happen. `getNewPrefix()` does the same as `getDBPrefix()`, but with a user-defined string appended to it, so this would be equivalent to "`DBPrefix::contracts` + the contract's address + `tokensAndBalances_`" (as a raw bytes string).
 
-## Implementing the contract functions
+## Implementing contract functions
 
 This step is pretty straightforward, we just follow the rules explained previously:
 
@@ -232,14 +232,14 @@ void ERC20Wrapper::deposit(const Address& token, const uint256_t& value) {
 
 ### Calling functions from another contract
 
-Notice that, in the example above, some functions are calling functions from another contract. This is done by calling `callContractViewFunction()` (**for view functions**) and `callContractFunction()`(**for non-view/callable functions**), both of which require the following arguments:
+Note that, in the example above, some functions are calling functions from another contract. This is done by calling `callContractViewFunction()` (**for view functions**) and `callContractFunction()`(**for non-view/callable functions**), both of which require the following arguments:
 
 * The other contract's address (in this case, `token`)
 * A reference to the function that will be called - in this case:
   * `getContractBalance()` calls `ERC20::balanceOf()`
   * `withdraw()` and `transferTo()` call `ERC20::transfer()`
   * `deposit()` calls`ERC20::transferFrom()`
-* The function's arguments, if there's any - in this case:
+* The function's arguments, if there are any - in this case:
   * `ERC20::balanceOf()` will receive our contract's own address as `getContractAddress()`
   * `ERC20::transfer()` will receive the receiver address as `to` or `getCaller()`, and the value to be transferred as `value`
   * `ERC20::transferFrom()` will receive the sender's address as `getCaller()`, the receiver's address as `getContractAddress()`, and the value to be transferred as `value`
@@ -273,9 +273,9 @@ This creates a new `ERC20` contract with the respective parameters:
 * The caller/transaction value, again, `0`
 * The new contract's constructor parameters, in this case an `ERC20` contract needs the token name (`"TestToken"`), its ticker (`"TST"`), number of decimals (`18`), and the amount of tokens that will be minted at creation (`1000000000000000000`, which equals exactly 1 TST with 18 decimals)
 
-## Registering the contract's functions
+## Registering contract functions
 
-Once we're done with implementing the contract, we must register it. We've already coded the `ConstructorArguments` tuple and the `registerContract()` function in the header, so all that's left is to override `registerContractFunctions()` so we can register the contract's functions.
+Once we're done with implementing the contract, we must register it. We've already coded the `ConstructorArguments` tuple and the `registerContract()` function in the header, so all that's left is to override `registerContractFunctions()` so we can register the contract's functions:
 
 ```cpp
 void ERC20Wrapper::registerContractFunctions() {

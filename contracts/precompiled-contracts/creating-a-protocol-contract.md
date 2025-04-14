@@ -1,14 +1,14 @@
 ---
-description: A primer on what to expect when creating Protocol Contracts.
+description: A primer on what to expect when creating Protocol Contracts
 ---
 
-# Creating a Protocol Contract (Advanced)
+# Creating a Protocol Contract
 
 Protocol Contracts do not offer the same level of ease of use and security as Dynamic Contracts. However, by sacrificing some of these features, they enable more complex functionalities that would be impossible to achieve with Dynamic Contracts alone. For instance, Protocol Contracts can call functions without an active transaction call when processing a block, access system files and make requests to other nodes.
 
 Introducing this new layer for processing information inherently carries risks, particularly in a decentralized network. To maintain a stable network, you must ensure that every node can execute the same operation, given a previous context. In a typical VM blockchain, this is achieved by allowing operations to be callable only by transactions and packaging these transactions into a block. When processing a block, all transactions that call a contract attempt to execute, ensuring that all operations are performed consistently within the given context.
 
-As a developer of a Protocol Contract, it is crucial to manage the processing of information in a way that ensures different nodes do not arrive at different results when given the same context. The challenge lies in defining "context". In a VM blockchain, the context can be defined based on a block and all its past blocks. However, in AppLayer, Protocol Contracts that process beyond a transaction call are actively changing their own context. Consequently, it is essential to guarantee that the context remains consistent across all nodes.
+As a developer of a Protocol Contract, it is crucial to manage the processing of information in a way that ensures different nodes do not arrive at different results when given the same context. The challenge lies in defining "context". In a VM blockchain, the context can be defined based on a block and all its past blocks. However, in AppLayer, Protocol Contracts can process beyond a transaction call and are actively changing their own context. Consequently, it is essential to guarantee that the context remains consistent across all nodes.
 
 By adhering to the following best practices, you can create Protocol Contracts that maintain consistent behavior across nodes, and ensure the stability and security of your blockchain network. Remember that the key to developing robust Protocol Contracts lies in managing the context and ensuring that all nodes in the network can process information the same way.
 
@@ -44,7 +44,7 @@ Under `src/contract/contractmanager.h`, you will find a global map which contain
 
 ## Pay attention to the contract's state
 
-It is required to pay attention to the state of the contract and how nodes will interact between each other. For example, if you have a contract that is doing parallel processing of a task, you need to make sure that this task can be replicated with the same result in any node. Not taking care of the state of a contract will eventually lead to undefined behavior, and that's a hornet's nest nobody wants to touch, right?
+It is required to pay attention to the state of the contract and how nodes will interact between each other. For example, if you have a contract that is doing parallel processing of a task, you need to make sure that this task can be replicated with the same result in any node. Not taking care of the state of a contract will eventually lead to undefined behavior, and that's a hornet's nest nobody wants to touch.
 
 ## Override `ethCall()` and take care of your revert conditions
 
@@ -52,7 +52,7 @@ It is necessary to override the `ethCall()` function in order to make functions 
 
 ## Pay attention to the contract state's commit status
 
-When the contract state's "commit" flag is set to `false`, it means that the current call is trying to simulate if it's going to throw or not, but if `true`, it means that the current call is trying to commit to the state, and you should do it respectively if it doesn't throw.
+When the contract state's `commit` flag is set to `false`, it means that the current call is trying to simulate if it's going to throw or not, but if `true`, it means that the current call is trying to commit to the state, and you should do it respectively if it doesn't throw.
 
 ## Add a reference to `ContractManager`
 
