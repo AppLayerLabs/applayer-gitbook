@@ -47,13 +47,13 @@ evmc::Result EvmContractExecutor::call(const evmc_message& msg) noexcept {
       } else {
         return evmc::Result(EVMC_SUCCESS, int64_t(gas), 0, output.data(), output.size());
       }
-    } catch (const OutOfGas&) { // TODO: ExecutionReverted exception is important
+    } catch (const OutOfGas&) {
       return evmc::Result(EVMC_OUT_OF_GAS);
     } catch (const std::exception& err) {
       Bytes output;
 
       if (err.what() != nullptr) {
-        output = ABI::Encoder::encodeError(err.what()); // TODO: this may throw...
+        output = ABI::Encoder::encodeError(err.what());
       }
 
       return evmc::Result(EVMC_REVERT, int64_t(gas), 0, output.data(), output.size());
