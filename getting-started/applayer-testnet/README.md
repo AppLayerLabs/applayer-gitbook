@@ -22,7 +22,7 @@ First, make sure you have set your preferred Web3 frontend (e.g. MetaMask) to co
 
 Here's a video showing the configuration on MetaMask as an example:
 
-{% file src=".gitbook/assets/applayer_testnet_step1.mp4" %}
+{% embed url="https://drive.google.com/file/d/1j1i2Poox0JdjeXKOX1c6SB5_ggNWVd4W/view?usp=drive_link" %}
 
 ## Claiming your tokens
 
@@ -34,4 +34,4 @@ To claim your APPL tokens on the testnet, open our [testnet faucet website](http
 
 Check this example video showing how to claim APPL tokens using a MetaMask address:
 
-{% file src=".gitbook/assets/applayer_testnet_step2.mp4" %}
+{% embed url="https://drive.google.com/file/d/1_uqgwqgiQHAbyU7qKwoM6KOcSO93abSJ/view?usp=drive_link" %}

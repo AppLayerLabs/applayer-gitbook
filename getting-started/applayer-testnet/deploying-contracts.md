@@ -37,7 +37,7 @@ To find out the address of your deployed contract, call the `getDeployedContract
 
 See the example video that deploys an ERC20 contract:
 
-{% file src=".gitbook/assets/applayer_testnet_contract_step1.mp4" %}
+{% embed url="https://drive.google.com/file/d/1zYKqBOCqS_CoL2HM-jV1BzVWuirP2NkO/view?usp=drive_link" %}
 
 ## Deploying EVM contracts
 
@@ -57,7 +57,7 @@ contract AnotherTestToken is ERC20 {
 }
 ```
 
-{% file src=".gitbook/assets/applayer_testnet_contract_step2.mp4" %}
+{% embed url="https://drive.google.com/file/d/1Q1yV8J37fhn8CTfBlgYYCOXMz3FhHO3o/view?usp=drive_link" %}
 
 ## (Optional) Using randomness in EVM contracts
 
@@ -108,4 +108,4 @@ Compile this code in Remix IDE (**remember to set the EVM to "Shanghai"**, like 
 
 See the following video as an example:
 
-{% file src=".gitbook/assets/applayer_testnet_contract_step3.mp4" %}
+{% embed url="https://drive.google.com/file/d/1m1d7P2ibQTogSnq_72JTZjDvHat4Tnpd/view?usp=drive_link" %}
