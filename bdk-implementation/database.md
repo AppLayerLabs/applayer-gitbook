@@ -1,34 +1,32 @@
 ---
-description: How Blockchain Development Kit's (BDK) internal database is structured and how data is stored in it.
+description: How the BDK's internal database is structured and how data is stored in it
 ---
 
 # Database
 
-BDK validators use an in-disk database for storing data about themselves and other nodes in the network, such as block/transaction data, contract data, node metadata, etc. Depending on the component (e.g. Storage), they might have their own database folder reserved just for them.
+BDK nodes use an in-disk database for storing data about themselves and other nodes in the network, such as blocks, transactions, contracts, node metadata, etc. Depending on the component, they might have their own database folder reserved just for them.
 
-The database itself is an abstraction of a [Speedb](https://github.com/speedb-io/speedb) database - a simple key/value database, but handled in a different way: keys use *prefixes*, which makes it possible to batch read and write, so we can get around the "simple key/value" limitation and divide data into sectors.
+The database itself is an abstraction of a [Speedb](https://github.com/speedb-io/speedb) database - a simple key/value database, but handled in a different way: keys use *prefixes*, which makes it possible to batch read and write, so we can get around the "simple key/value" limitation and divide data into logical sectors.
+
+## General overview
 
 The database requires a filesystem path to open it (if it already exists) or create it on the spot (if it doesn't exist) during construction. It closes itself automatically on destruction. Optionally, it also accepts a bool for enabling compression (disabled by default), if needed.
 
-Content in the database is stored as raw bytes. This is due to space optimizations, as one raw byte equals two UTF-8 characters (e.g. an address like `0x1234567890123456789012345678901234567890`, ignoring the "0x" prefix, occupies 20 raw bytes - "12 34 56 ..." - , but 40 bytes if converted to a string, since each byte becomes two separate characters - "1 2 3 4 5 6 ...").
+Content in the database is stored as raw bytes for space optimization purposes - one raw byte equals two UTF-8 characters (e.g. an address like `0x1234567890123456789012345678901234567890`, ignoring the "0x" prefix, occupies 20 raw bytes - "12 34 56 ..." - , but 40 bytes if converted to a string, since each byte becomes two separate characters - "1 2 3 4 5 6 ...").
 
-For the main CRUD operations, refer to the `has()`, `get()`, `put()` and `del()` functions. Due to how the database works internally, updating an entry is the same as inserting a different value in a key that already exists, effectively replacing the value that existed before (e.g. `put(oldKey, newValue)`). There's also a few other helper functions such as:
+The main **DB** class supports the typical CRUD operations, as well as a few helper functions for managing batched operations, keys and prefixes (see below). Due to how Speedb works internally, updating an entry is the same as inserting a different value in a key that already exists, effectively replacing the value that existed before (e.g. `put(oldKey, newValue)`).
 
-* `getBatch()` and `putBatch()` for batched operations
-* `getKeys()` for fetching only the database's keys
-* `keyFromStr()` for encapsulating a key into a Bytes object
-* `getLastByPrefix()` for getting the last value stored in a given prefix
-* `makeNewPrefix()` for concatenating prefixes when necessary
+There are three helper structs that further abstract database manipulation in general:
 
-## Structs and Prefixes
+* **DBServer** - contains the host and version of the database that will be connected to
+* **DBEntry** - abstraction of an entry to be inserted or read by the database, and has only two members: key and value, both strings
+* **DBBatch** - abstraction for a list of multiple `DBEntry`s to be inserted and/or deleted all at once
 
-We have three helper structs to ease database manipulation:
+There's also a **DBPrefix** namespace for referencing the database's prefixes in a simpler way, using labels instead of raw byte strings. Those prefixes are concatenated to the start of the *key*, so an entry that would have, for example, a key named "abc" and a value of "123", if inserted to the "0003" prefix, would be like this inside the database (in raw bytes, shown as strings here for explanation purposes): `{"0003abc": "123"}`.
 
-* `DBServer` - struct that contains the host and version of the database that will be connected to
-* `DBEntry` - struct that contains an entry to be inserted or read by the database, and has only two members: key and value, both strings
-* `DBBatch` - struct that contains multiple `DBEntry`s to be inserted and/or deleted all at once
+## Prefixes overview
 
-We also have a `DBPrefix` namespace to reference the database's prefixes in a simpler way:
+Here's a list of available prefixes from DBPrefix (they're accessed like `DBPrefix::label`, where you change `label` for one of the desired names below):
 
 | Descriptor         | Prefix |
 | ------------------ | ------ |
@@ -43,10 +41,6 @@ We also have a `DBPrefix` namespace to reference the database's prefixes in a si
 | vmStorage          | 0x0009 |
 | txToAdditionalData | 0x000A |
 | txToCallTrace      | 0x000B |
-
-Those prefixes are concatenated to the start of the _key_, so an entry that would have, for example, a key named "abc" and a value of "123", if inserted to the "0003" prefix, would be like this inside the database (in raw bytes format, strings here are just for the sake of the explanation): `{"0003abc": "123"}`
-
-## Prefixes Overview
 
 ### blocks
 

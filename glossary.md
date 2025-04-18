@@ -1,5 +1,5 @@
 ---
-description: Definitions of some technical terms used throughout the documentation.
+description: Definitions of some technical terms used throughout the documentation
 ---
 
 # Glossary

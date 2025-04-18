@@ -1,14 +1,14 @@
 ---
-description: How the Blockchain Development Kit (BDK) uses RLP to encode and decode transactions.
+description: How the BDK uses RLP to encode and decode transactions
 ---
 
 # RLP (Recursive-Length Prefix)
 
 Transactions coming from the network are (de)serialized through a standard called [Recursive-Length Prefix](http://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp), also known as **RLP** and used extensively by Ethereum. As per their definition:
 
-"*RLP standardizes the transfer of data between nodes in a space-efficient-format. The only purpose of RLP is to encode structure and arbitrarily nested arrays of binary data.*"
+*"RLP standardizes the transfer of data between nodes in a space-efficient-format. The only purpose of RLP is to encode structure and arbitrarily nested arrays of binary data."*
 
-### Rules for decoding
+## Encoding/Decoding rules
 
 First of all, **the first byte of the data string defines what exactly the serialized string is storing**. This can be broken down as follows:
 
@@ -27,7 +27,7 @@ First of all, **the first byte of the data string defines what exactly the seria
   * e.g. `0xf8a90c8504a817c80082c160944fabb145d64652a948d72533023f6e7a623c7c5380b844a9059cbb0000000000000000000000006b71dcaa3fb9a4901491b748074a314dad9e980b000000000000000000000000000000000000000000000029e7ab336ae0b5000025a0ef2f3450e6860289dce618af68ebc7d518c3cb3ea4d1641cb2fe7c7251ff31d4a0540dcf1500630a1b0d0d0670eee012e2cf2c64cf3288d122e0efb0d3deb0340f`
   * `0xf8 - 0xf7 = 0x01 -> 1 byte in decimal` -> size is the next 1 byte after `0xf7`, which would be `0xa9 = 169 bytes` -> value is the next 169 bytes after `0xa9`
 
-### Decoding a transaction
+## Decoding a transaction
 
 Let's take an example of a [serialized and signed transaction](https://etherscan.io/tx/0xfd394cb193386ae904af2ef19247e16c51e6974aa8505dbc9b699cc289fb180d) and decode it:
 

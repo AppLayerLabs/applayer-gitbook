@@ -1,10 +1,10 @@
 ---
-description: How P2P messages are structured in the Blockchain Development Kit (BDK).
+description: How P2P messages are structured in the BDK
 ---
 
 # P2P Encoding
 
-This subchapter explains how P2P data travels through AppLayer, and how said data is encoded and decoded between nodes. All hexes displayed in this document are interpreted as bytes.
+This subchapter explains how P2P data travels through a BDK-powered blockchain, and how said data is encoded and decoded between AppLayer nodes. All hex strings displayed in this document are interpreted as raw bytes in code.
 
 ## Handshake
 
@@ -15,7 +15,7 @@ After the session successfully creates a connection, the first thing that happen
 | NodeType      | 1 Byte  | Host node type  |
 | P2PServerPort | 2 Bytes | P2P Server Port |
 
-## P2P::Message
+## Message
 
 Structure that holds any type of P2P message, encoded as follows:
 
@@ -26,25 +26,20 @@ Structure that holds any type of P2P message, encoded as follows:
 | Command ID   | 2 Bytes | Command ID                                  |
 | Payload      | X Bytes | Message Command Payload                     |
 
-### Request Flag
+Where each variable represents the following:
 
-Used to tell if the request is a "Request" (0), an "Answer" (1) to a previous request, or a "Broadcast" (2) request (verify and broadcast towards other nodes of the network).
+* **Request Flag** - used to tell the message's type (Request, Answer, Broadcast or Notification)
+  * Requests will always wait and have a respective Answer
+  * Broadcasts and Notifications are processed directly and independently from each other
+  * The random ID in a Broadcast message is used to know if the node has previously received that broadcast and if it should rebroadcast or not
+* **Random ID** - used to tell different messages apart and make async requests
+  * Requests calculate their ID with 8 random bytes
+  * Answers use the same ID from the Request they belong to
+  * Broadcasts calculate their ID with the first 8 bytes of the hash of the message's payload (using SafeHash)
+* **Command ID** - used to tell which command type is encoded in the payload (see below)
+* **Payload** - self-explanatory. May be absent as it is not required for certain message types
 
-A Request will always wait and have a respective Answer, while Broadcasts are processed directly. See the difference between functions called by `handleAnswer()`/`handleRequest()` and functions called by `handleBroadcast()`. The random ID of the Broadcast request is used to know if the node has previously received that broadcast and if it should rebroadcast or not.
-
-### Random ID
-
-Used to tell different requests apart and make async requests. During a request, the random ID is calculated with 8 random bytes. During an answer, the random ID is equal to the random ID of the respective request. If it's a Broadcast request, the randomID equals `SafeHash(payload)`.
-
-### Command ID
-
-Used to tell which command type is encoded in the payload. See below for more info.
-
-### Payload
-
-Used as the payload of the request/answer (if needed).
-
-### Example
+### Example of a message
 
 Given the example `0x01adf01827349cad810002123456789abcdef` we can extract the following values:
 
@@ -53,7 +48,11 @@ Given the example `0x01adf01827349cad810002123456789abcdef` we can extract the f
 * Command ID: `0002`
 * Payload: `123456789abcdef`
 
+Note this is just an example - see below for the real commands and what they return.
+
 ## Commands
+
+Here's a list of all supported P2P message commands available for use in the BDK:
 
 ### Ping
 
