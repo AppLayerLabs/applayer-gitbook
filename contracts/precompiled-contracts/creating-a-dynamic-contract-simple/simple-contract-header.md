@@ -199,38 +199,35 @@ class SimpleContract : public DynamicContract {
 }
 ```
 
-Then, implement the `registerContract()` function declared previously by calling a function from the `ContractReflectionInterface` class called `registerContractMethods()`, passing a few arguments to it, like this:
+Then, implement the `registerContract()` function declared previously by calling a function from the `DynamicContract` class called `registerContractMethods()`, passing a few arguments to it, like this:
 
 ```cpp
 class SimpleContract : public DynamicContract {
   public:
     // ...
     static void registerContract() {
-      ContractReflectionInterface::registerContractMethods<
-        SimpleContract, const std::string&, const uint256_t&, const std::tuple<std::string, uint256_t>&,
-        const Address&, const Address&, const uint64_t&, const DB&
-      >(
-        std::vector<std::string>{"name_", "number_", "tuple_"},
-        std::make_tuple("getName", &SimpleContract::getName, FunctionTypes::View
+      static std::once_flag once;
+      std::call_once(once, []() {
+        DynamicContract::registerContractMethods<SimpleContract>(
+          std::vector<std::string>{"name_", "number_", "tuple_"},
+          std::make_tuple("getName", &SimpleContract::getName, FunctionTypes::View
 , std::vector<std::string>{}),
-        std::make_tuple("getNumber", &SimpleContract::getNumber, FunctionTypes::View
+          std::make_tuple("getNumber", &SimpleContract::getNumber, FunctionTypes::View
 , std::vector<std::string>{}),
-        std::make_tuple("getTuple", &SimpleContract::getTuple, FunctionTypes::View, std::vector<std::string>{}),
-        std::make_tuple("setName", &SimpleContract::setName, FunctionTypes::NonPayable
+          std::make_tuple("getTuple", &SimpleContract::getTuple, FunctionTypes::View, std::vector<std::string>{}),
+          std::make_tuple("setName", &SimpleContract::setName, FunctionTypes::NonPayable
 , std::vector<std::string>{"argName"}),
-        std::make_tuple("setNumber", &SimpleContract::setNumber, FunctionTypes::NonPayable
+          std::make_tuple("setNumber", &SimpleContract::setNumber, FunctionTypes::NonPayable
 , std::vector<std::string>{"argNumber"}),
-        std::make_tuple("setTuple", &SimpleContract::setTuple, FunctionTypes::NonPayable, std::vector<std::string>{"argTuple"})
-      );
+          std::make_tuple("setTuple", &SimpleContract::setTuple, FunctionTypes::NonPayable, std::vector<std::string>{"argTuple"})
+        );
+        // ...
+      });
     }
 }
 ```
 
-Inside the chevrons (`registerContractMethods<...>()`):
-
-* The first argument is the contract's class type (in this case, `SimpleContract` - *no quotes ""*)
-* The following arguments are all the types of arguments inside its first constructor (from scratch - the same ones that were put inside `ConstructorArguments`) - you can copy-paste the constructor's arguments as-is and take out the names
-  * It's important to remember that contract arguments should be declared *before* the internal arguments used by the base class constructor, as stated previously
+The `std::call_once` function is used to guarantee contract registering will be done exactly once, even if called from several threads. Inside the chevrons (`registerContractMethods<...>()`) there's only one argument needed, which is the contract's class type itself (in this case, `SimpleContract` - *no quotes ""*).
 
 Inside the parentheses (`registerContractMethods<>(...)`):
 
@@ -253,17 +250,20 @@ class SimpleContract : public DynamicContract {
   public:
     // ...
     static void registerContract() {
-      // ContractReflectionInterface::registerContractMethods() called here
-      ContractReflectionInterface::registerContractEvents<SimpleContract>(
-        std::make_tuple("nameChanged", false, &SimpleContract::nameChanged, std::vector<std::string>{"name"}),
-        std::make_tuple("numberChanged", false, &SimpleContract::numberChanged, std::vector<std::string>{"number"}),
-        std::make_tuple("tupleChanged", false, &SimpleContract::tupleChanged, std::vector<std::string>{"tuple"})
-      );
+      static std::once_flag once;
+      std::call_once(once, []() {
+        // DynamicContract::registerContractMethods() called here
+        ContractReflectionInterface::registerContractEvents<SimpleContract>(
+          std::make_tuple("nameChanged", false, &SimpleContract::nameChanged, std::vector<std::string>{"name"}),
+          std::make_tuple("numberChanged", false, &SimpleContract::numberChanged, std::vector<std::string>{"number"}),
+          std::make_tuple("tupleChanged", false, &SimpleContract::tupleChanged, std::vector<std::string>{"tuple"})
+        );
+      });
     }
 }
 ```
 
-Inside the chevrons (`registerContractEvents<...>()`), the only argument is the contract's class name (in this case, `SimpleContract` - again, *no quotes ""*).
+Inside the chevrons (`registerContractEvents<...>()`), like before, the only argument needed is the contract's class name (in this case, `SimpleContract` - again, *no quotes ""*).
 
 Inside the parentheses (`registerContractEvents<>(...)`), much like the other register function, there is one tuple per implemented event, that contain respectively:
 

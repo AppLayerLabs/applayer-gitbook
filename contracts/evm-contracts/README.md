@@ -16,22 +16,18 @@ The VM itself is owned and instantiated by the `State` class, which reflects a c
 ContractHost(
   evmc_vm* vm,
   DumpManager& manager,
-  const Storage& storage,
+  Storage& storage,
   const Hash& randomnessSeed,
-  const evmc_tx_context& currentTxContext,
-  boost::unordered_flat_map<Address, std::unique_ptr<BaseContract>, SafeHash>& contracts,
-  boost::unordered_flat_map<Address, NonNullUniquePtr<Account>, SafeHash>& accounts,
-  boost::unordered_flat_map<StorageKey, Hash, SafeHash>& vmStorage,
-  const Hash& txHash,
-  const uint64_t txIndex,
-  const Hash& blockHash,
-  int64_t& txGasLimit
+  ExecutionContext& context,
+  BlockObservers *blockObservers = nullptr
 );
 ```
 
-Once an instance of `ContractHost` is created, it offers methods like `execute()` to run the contract, `simulate()` for simulating the transaction (useful for gas estimation), and `ethCallView()` for making calls to other contracts within a non-state-changing context.
+### Determining contract types and executing calls
 
-`ContractHost` also extends the functionalities of `evmc::Host` by overriding several key functions that interface directly with the Ethereum Virtual Machine, which are obligatory for the VM to be able to interact with the blockchain's state:
+Once an instance of `ContractHost` is created, it delegates contract execution calls to a few members like `ExecutionContext` (which keeps track of data like transaction hash, index, gas limit, etc., as well as the logic required for reverting alterations made during the call when required, e.g. when it fails), `MessageDispatcher` (which re-routes the call to its respective executor - `CppContractExecutor` for C++ calls and `EvmContractExecutor` for EVM calls) and `CallTracer` (which answers RPC calls related to debugging purposes, if the node is set to RPC_TRACE).
+
+`EvmContractExecutor` also extends the functionalities of `evmc::Host` by overriding several key functions that interface directly with the Ethereum Virtual Machine, which are obligatory for the VM to be able to interact with the blockchain's state:
 
 ```cpp
 bool account_exists(const evmc::address& addr) const noexcept final;
@@ -52,7 +48,7 @@ evmc::bytes32 get_transient_storage(const evmc::address &addr, const evmc::bytes
 void set_transient_storage(const evmc::address &addr, const evmc::bytes32 &key, const evmc::bytes32 &value) noexcept final;
 ```
 
-These methods manage everything from account validation to logging, providing access to the blockchain's state and storage, and handling calls between contracts. The `ContractHost` class encapsulates these functions, ensuring that each contract execution is properly secured and isolated from each other.
+These methods manage everything from account validation to logging, providing access to the blockchain's state and storage, and handling calls between contracts. The `EvmContractExecutor` class encapsulates these functions, ensuring that each contract execution is properly secured and isolated from each other.
 
 ## Seamless native/EVM integration
 
@@ -76,84 +72,4 @@ struct evmc_message {
   evmc_bytes32 create2_salt;
   evmc_address code_address;
 };
-```
-
-### Determining contract types and executing calls
-
-`ContractHost` plays a critical role in distinguishing whether a contract is implemented natively or in EVM bytecode and executing it accordingly. Below is an example illustrating how contracts can invoke functions in other contracts, whether they are coded in e.g. C++ or Solidity:
-
-```c++
-template <typename R, typename C, typename... Args>
-R callContractFunctionImpl(
-  BaseContract* caller, const Address& targetAddr,
-  const uint256_t& value,
-  R(C::*func)(const Args&...), const Args&... args
-) {
-  auto& recipientAcc = *this->accounts_[targetAddr];
-  if (!recipientAcc.isContract()) {
-    throw DynamicException(std::string(__func__) + ": Contract does not exist - Type: "
-      + Utils::getRealTypeName<C>() + " at address: " + targetAddr.hex().get()
-    );
-  }
-  if (value) {
-    this->sendTokens(caller, targetAddr, value);
-  }
-  NestedCallSafeGuard guard(caller, caller->caller_, caller->value_);
-  switch (recipientAcc.contractType) {
-    case ContractType::EVM: {
-      this->deduceGas(10000);
-      evmc_message msg;
-      msg.kind = EVMC_CALL;
-      msg.flags = 0;
-      msg.depth = 1;
-      msg.gas = this->leftoverGas_;
-      msg.recipient = targetAddr.toEvmcAddress();
-      msg.sender = caller->getContractAddress().toEvmcAddress();
-      auto functionName = ContractReflectionInterface::getFunctionName(func);
-      if (functionName.empty()) {
-        throw DynamicException("ContractHost::callContractFunction: EVM contract function name is empty (contract not registered?)");
-      }
-      auto functor = ABI::FunctorEncoder::encode<Args...>(functionName);
-      Bytes fullData;
-      Utils::appendBytes(fullData, UintConv::uint32ToBytes(functor.value));
-      if constexpr (sizeof...(Args) > 0) {
-        Utils::appendBytes(fullData, ABI::Encoder::encodeData<Args...>(args...));
-      }
-      msg.input_data = fullData.data();
-      msg.input_size = fullData.size();
-      msg.value = EVMCConv::uint256ToEvmcUint256(value);
-      msg.create2_salt = {};
-      msg.code_address = targetAddr.toEvmcAddress();
-      evmc::Result result (evmc_execute(this->vm_, &this->get_interface(), this->to_context(),
-      evmc_revision::EVMC_LATEST_STABLE_REVISION, &msg, recipientAcc.code.data(), recipientAcc.code.size()));
-      this->leftoverGas_ = result.gas_left;
-      if (result.status_code) {
-        auto hexResult = Hex::fromBytes(bytes::View(result.output_data, result.output_data + result.output_size));
-        throw DynamicException("ContractHost::callContractFunction: EVMC call failed - Type: "
-          + Utils::getRealTypeName<C>() + " at address: " + targetAddr.hex().get() + " - Result: " + hexResult.get()
-        );
-      }
-      if constexpr (std::same_as<R, void>) {
-        return;
-      } else {
-        return std::get<0>(ABI::Decoder::decodeData<R>(bytes::View(result.output_data, result.output_data + result.output_size)));
-      }
-    } break;
-    case ContractType::CPP: {
-      this->deduceGas(1000);
-      C* contract = this->getContract<C>(targetAddr);
-      this->setContractVars(contract, caller->getContractAddress(), value);
-      try {
-        return contract->callContractFunction(this, func, args...);
-      } catch (const std::exception& e) {
-        throw DynamicException(e.what() + std::string(" - Type: ")
-          + Utils::getRealTypeName<C>() + " at address: " + targetAddr.hex().get()
-        );
-      }
-    }
-    default: {
-      throw DynamicException("PANIC! ContractHost::callContractFunction: Unknown contract type");
-    }
-  }
-}
 ```

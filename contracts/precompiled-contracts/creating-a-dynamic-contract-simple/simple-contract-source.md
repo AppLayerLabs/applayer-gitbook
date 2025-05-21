@@ -145,17 +145,19 @@ void SimpleContract::setTuple(const std::tuple<std::string, uint256_t>& argTuple
 
 After all functions are implemented, we must implement one more - `registerContractFunctions()`, which is responsible for registering the other functions so they can be called later by a transaction or an RPC `eth_call`. Their respective functors/signatures will be stored in an internal map, allowing a given transaction to call any function within that contract. Registration is done within try/catch blocks internally, which allows the protection of SafeVariables against any exceptions thrown by the function.
 
-The first thing it should do is call `registerContract()` right away, so it's guaranteed that the contract itself will be registered before its functions. As for the functions themselves, they are registered by calling `this->registerMemberFunction()` for each function your contract has (NOT including events), always passing four arguments to it - the function's name, a reference to the function, its state mutability, and `this` (a pointer to the contract itself), as follows:
+The first thing it should do is call `registerContract()` right away, so it's guaranteed that the contract itself will be registered before its functions. As for the functions themselves, they are registered by calling `this->registerMemberFunctions()` and passing to it several tuples - one for each function your contract has (NOT including events). Each tuple needs four arguments - the function's name, a reference to the function, its state mutability, and `this` (a pointer to the contract itself), as follows:
 
 ```cpp
 void SimpleContract::registerContractFunctions() {
   registerContract();
-  this->registerMemberFunction("getName", &SimpleContract::getName, FunctionTypes::View, this);
-  this->registerMemberFunction("getNumber", &SimpleContract::getNumber, FunctionTypes::View, this);
-  this->registerMemberFunction("getTuple", &SimpleContract::getTuple, FunctionTypes::View, this);
-  this->registerMemberFunction("setName", &SimpleContract::setName, FunctionTypes::NonPayable, this);
-  this->registerMemberFunction("setNumber", &SimpleContract::setNumber, FunctionTypes::NonPayable, this);
-  this->registerMemberFunction("setTuple", &SimpleContract::setTuple, FunctionTypes::NonPayable, this);
+  this->registerMemberFunctions(
+    std::make_tuple("getName", &SimpleContract::getName, FunctionTypes::View, this),
+    std::make_tuple("getNumber", &SimpleContract::getNumber, FunctionTypes::View, this),
+    std::make_tuple("getTuple", &SimpleContract::getTuple, FunctionTypes::View, this),
+    std::make_tuple("setName", &SimpleContract::setName, FunctionTypes::NonPayable, this),
+    std::make_tuple("setNumber", &SimpleContract::setNumber, FunctionTypes::NonPayable, this),
+    std::make_tuple("setTuple", &SimpleContract::setTuple, FunctionTypes::NonPayable, this)
+  );
 }
 ```
 

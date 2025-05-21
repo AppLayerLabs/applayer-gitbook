@@ -18,6 +18,7 @@
   * [Internal and external contract calls](contracts/internal-and-external-contract-calls.md)
   * [Precompiled contracts](contracts/precompiled-contracts/README.md)
     * [Dynamic and Protocol Contracts](contracts/precompiled-contracts/dynamic-and-protocol-contracts.md)
+    * [Dynamic Contract Templates](contracts/precompiled-contracts/dynamic-contract-templates.md)
     * [Managing precompiled contracts](contracts/precompiled-contracts/managing-precompiled-contracts.md)
     * [SafeVariables and commit/revert logic](contracts/precompiled-contracts/safevariables-and-commit-revert-logic.md)
     * [How to code a precompiled contract](contracts/precompiled-contracts/how-to-code-a-precompiled-contract.md)

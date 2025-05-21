@@ -14,16 +14,13 @@ The `ContractHost` class employs several functions dedicated to native contract 
 
 ```cpp
 template <typename R, typename C, typename... Args>
-R ContractHost::callContractViewFunction(
-  const BaseContract* caller, const Address& targetAddr,
-  R(C::*func)(const Args&...) const, const Args&... args
-) const;
+R callContractViewFunction(
+  const BaseContract* caller, const Address& targetAddr, R(C::*func)(const Args&...) const, const Args&... args
+);
 
 template <typename R, typename C, typename... Args>
-R ContractHost::callContractFunction(
-  BaseContract* caller, const Address& targetAddr,
-  const uint256_t& value,
-  R(C::*func)(const Args&...), const Args&... args
+R callContractFunction(
+  BaseContract* caller, const Address& targetAddr, const uint256_t& value, R(C::*func)(const Args&...), const Args&... args
 );
 ```
 

@@ -86,7 +86,7 @@ Inside `erc20wrapper.h`, let's implement the header (comments were taken out so 
 #include "../contractmanager.h"
 #include "../dynamiccontract.h"
 #include "../variables/safeunorderedmap.h"
-#include "erc20.h"
+#include "standards/erc20.h"
 
 class ERC20Wrapper : public DynamicContract {
   private:
@@ -101,16 +101,17 @@ class ERC20Wrapper : public DynamicContract {
     ~ERC20Wrapper() override;
 
     static void registerContract() {
-      ContractReflectionInterface::registerContractMethods<
-        ERC20Wrapper, const Address&, const Address&, const uint64_t&, DB&
-      >(
-        std::vector<std::string>{},
-        std::make_tuple("getContractBalance", &ERC20Wrapper::getContractBalance, FunctionTypes::View, std::vector<std::string>{"token"}),
-        std::make_tuple("getUserBalance", &ERC20Wrapper::getUserBalance, FunctionTypes::View, std::vector<std::string>{"token", "user"}),
-        std::make_tuple("withdraw", &ERC20Wrapper::withdraw, FunctionTypes::NonPayable, std::vector<std::string>{"token", "value"}),
-        std::make_tuple("transferTo", &ERC20Wrapper::transferTo, FunctionTypes::NonPayable, std::vector<std::string>{"token", "to", "value"}),
-        std::make_tuple("deposit", &ERC20Wrapper::deposit, FunctionTypes::NonPayable, std::vector<std::string>{"token", "value"})
-      );
+      static std::once_flag once;
+      std::call_once(once, []() {
+        DynamicContract::registerContractMethods<ERC20Wrapper>(
+          std::vector<std::string>{},
+          std::make_tuple("getContractBalance", &ERC20Wrapper::getContractBalance, FunctionTypes::View, std::vector<std::string>{"token"}),
+          std::make_tuple("getUserBalance", &ERC20Wrapper::getUserBalance, FunctionTypes::View, std::vector<std::string>{"token", "user"}),
+          std::make_tuple("withdraw", &ERC20Wrapper::withdraw, FunctionTypes::NonPayable, std::vector<std::string>{"token", "value"}),
+          std::make_tuple("transferTo", &ERC20Wrapper::transferTo, FunctionTypes::NonPayable, std::vector<std::string>{"token", "to", "value"}),
+          std::make_tuple("deposit", &ERC20Wrapper::deposit, FunctionTypes::NonPayable, std::vector<std::string>{"token", "value"})
+        );
+      });
     }
 
     uint256_t getContractBalance(const Address& token) const;
@@ -280,11 +281,13 @@ Once we're done with implementing the contract, we must register it. We've alrea
 ```cpp
 void ERC20Wrapper::registerContractFunctions() {
   registerContract();
-  this->registerMemberFunction("getContractBalance", &ERC20Wrapper::getContractBalance, FunctionTypes::View, this);
-  this->registerMemberFunction("getUserBalance", &ERC20Wrapper::getUserBalance, FunctionTypes::View, this);
-  this->registerMemberFunction("withdraw", &ERC20Wrapper::withdraw, FunctionTypes::NonPayable, this);
-  this->registerMemberFunction("transferTo", &ERC20Wrapper::transferTo, FunctionTypes::NonPayable, this);
-  this->registerMemberFunction("deposit", &ERC20Wrapper::deposit, FunctionTypes::NonPayable, this);
+  this->registerMemberFunctions(
+    std::make_tuple("getContractBalance", &ERC20Wrapper::getContractBalance, FunctionTypes::View, this),
+    std::make_tuple("getUserBalance", &ERC20Wrapper::getUserBalance, FunctionTypes::View, this),
+    std::make_tuple("withdraw", &ERC20Wrapper::withdraw, FunctionTypes::NonPayable, this),
+    std::make_tuple("transferTo", &ERC20Wrapper::transferTo, FunctionTypes::NonPayable, this),
+    std::make_tuple("deposit", &ERC20Wrapper::deposit, FunctionTypes::NonPayable, this)
+  );
 }
 ```
 

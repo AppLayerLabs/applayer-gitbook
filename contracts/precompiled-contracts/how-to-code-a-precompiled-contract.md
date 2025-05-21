@@ -56,20 +56,23 @@ Every contract in the BDK inherits from the following classes, which means they 
 
 | Function  | Description                  |
 | --------- | ---------------------------- |
-| getOrigin | Get the transaction's origin |
 | getCaller | Get the transaction's caller |
 | getValue  | Get the transaction's value  |
 
 * **BaseContract** - base class for all contracts, provides and stores the respective contract's information
 
-| Function           | Description                                                         |
-| ------------------ | ------------------------------------------------------------------- |
-| getContractAddress | Get the contract's address                                          |
-| getContractCreator | Get the contract's owner                                            |
-| getContractChainId | Get the contract's chainId                                          |
-| getContractName    | Get the contract's name                                             |
-| getDBPrefix        | Get the contract's database prefix                                  |
-| getNewPrefix       | Same as getDBPrefix() but with a user-defined prefix appended to it |
+| Function                   | Description                                                         |
+| -------------------------- | ------------------------------------------------------------------- |
+| getContractAddress         | Get the contract's address                                          |
+| getContractCreator         | Get the contract's owner                                            |
+| getContractChainId         | Get the contract's chainId                                          |
+| getContractName            | Get the contract's name                                             |
+| getDBPrefix                | Get the contract's database prefix                                  |
+| getNewPrefix               | Same as getDBPrefix() but with a user-defined prefix appended to it |
+| getOrigin                  | Get the transaction's origin                                        |
+| getNonce                   | Get the address' nonce                                              |
+| getBlockNumberObservers    | Get the contract's block number observers                           |
+| getBlockTimestampObservers | Get the contract's block timestamp observers                        |
 
 * **DynamicContract** - for Dynamic Contracts specifically, you can also use the following:
 
