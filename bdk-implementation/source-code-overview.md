@@ -20,34 +20,38 @@ There is also a `tests` folder that contains several unit tests for the componen
 
 As the project is constantly iterated upon and components may come and go with time, we rely mostly on self-documenting code (e.g. the Doxygen docs as stated earlier) to carry the burden of detailing them, so we recommend sticking with that if you need a deeper look on what each component does.
 
-From a simpler point of view however, we can pinpoint the most important and/or most frequently used components across the entire project as follows:
+From a simpler point of view, we can pinpoint the most important and/or most frequently used components across the entire project as follows:
 
 ### src/utils
 
-* **Byte and Bytes** - aliases for the raw byte data types used throughout the project
+* **Byte, Bytes, BytesInterface** - aliases for the raw byte data types used throughout the project
 * **ContractReflectionInterface** - namespace with utility functions that enable [reflections](https://en.wikipedia.org/wiki/Reflective\_programming) in C++ by extensive use of templates, used mainly for registering contract classes
-* **DB** - abstraction of a [Speedb](https://github.com/speedb-io/speedb) database used internally for manipulating various kinds of storage data (including helper components)
+* **DB, EventsDB** - abstraction of a [Speedb](https://github.com/speedb-io/speedb) (DB) and [SQLite](https://sqlite.org) (EventsDB) database, respectively used internally for manipulating various kinds of storage data, including contract events and helper components (see the Database subchapter)
+* **DynamicException** - custom exception class used everywhere in the project
 * **FinalizedBlock** - abstraction of a block's structure and data in the chain, inherently unmodifiable after creation (ensures state integrity across nodes)
 * **FixedBytes and derivatives** (Address, Functor, Hash, Signature, StorageKey) - abstraction of a C++ STL-compliant fixed-size byte array (e.g. `FixedBytes<10>` has *exactly* 10 bytes - derivatives have predefined sizes)
 * **Hex** - abstraction of a strictly hex-formatted string (`0x[1-9][a-f][A-F]`)
 * **JsonAbi** - namespace responsible for managing and converting contract ABI data to JSON format (used by the contract ABI generator binary)
+* **Log, LogInfo, Logger** - namespace for logging utilities, used for debugging purposes
 * **Merkle** - custom implementation of a Merkle Tree, adapted from [those](https://medium.com/coinmonks/implementing-merkle-tree-and-patricia-tree-b8badd6d9591) [sites](https://lab.miguelmota.com/merkletreejs/example/)
 * **Options** - singleton with data about the node, frequently accessed by the BDK (generated during build time from a .in file)
 * **RandomGen** - implementation of the deterministic randomness generator used for almost everything related to blockchain consensus
 * **SafeHash and FNVHash** - custom implementations for unordered map key hashing and [Fowler-Noll-Vo](https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo\_hash\_function) hashing respectively across the entire project
 * **Secp256k1** - namespace that abstracts the functionalities of Bitcoin's [secp256k1](https://en.bitcoin.it/wiki/Secp256k1) elliptic curve cryptography library, used for signing, verification and key derivation (including helper aliases)
+* **transactional** - namespace that provides the structs used for committing/reverting transactions and checkpoints during contract execution
 * **TxBlock and TxValidator** - abstractions for a block transaction and a Validator transaction respectively (derived from Ethereum's "Account" model, contrary to Bitcoin's "UTXO" model) - includes a **TxAdditionalData** struct with metadata about a deployed contract (e.g. tx hash, gas used, call status, contract address, etc.)
 * **UintConv, IntConv, StrConv and EVMCConv** - namespaces related to aliases, conversion and manipulation of specific types of data (e.g. integers, strings, EVMC data, etc.)
 * **Utils** - namespace for miscellaneous utility functions, namespaces, enums and typedefs used across the project
+* **View** - helper struct for creating views of any kind of data (similar to "std::string_view" for example)
 
 ### src/contract
 
 See the Contracts section and the respective subsections for more details on the following components:
 
-* Subfolders for the implemented precompiled contract templates and SafeVariables (see Precompiled contracts)
+* Subfolders for the implemented contract templates, SafeVariables and EVM precompiles (see Precompiled contracts)
 * **ABI** - namespace for handling Solidity ABI types and data encoding/decoding (see Solidity ABI)
 * **BaseContract and DynamicContract** - base types for Protocol and Dynamic Contracts respectively (includes the **ContractGlobals and ContractLocals** helper classes for managing contract metadata)
-* **ContractHost** - class responsible for managing contract execution stacks from beginning to end (including nested calls), the EVMC host implementation for EVM contracts, and general native<->EVM contract interoperability
+* **ContractHost** - class responsible for managing contract execution stacks from beginning to end (including nested calls), the EVMC host implementation for EVM contracts, and general native<->EVM contract interoperability by means of helper members like **MessageDispatcher, ExecutionContext, Cpp/EvmContractExecutor, BlockObservers**, etc. (see EVM contracts)
 * **ContractManager** - class responsible for managing all Dynamic Contract creation and deployment logic in the chain (includes the **ContractFactory** helper class)
 * **ContractStack** - class responsible for managing temporary data from contract nested call chains (e.g. altered contract balances and SafeVariable commit/revert logic), used by ContractHost in a 1:1 ratio (only one stack instance spawned per host instance during a call)
 * **ContractTypes** - list of custom contract names to instance during blockchain deploy (see Creating a Dynamic Contract > Deploying and testing)
@@ -62,7 +66,16 @@ See the Contracts section and the respective subsections for more details on the
 * **State** - abstraction of the chain's current state of accounts, balances, nonces, transactions, token balances, deployed contracts and other kinds of shared data at the current block in the network
 * **Storage** - abstraction of the chain's block storage history, including transactions, contracts, accounts, emitted contract events and other immutable blockchain-related data (managed both in memory and disk)
 
-### src/net/p2p
+### src/net
+
+Under the `http` and `http/jsonrpc` subfolder
+
+* **HTTPSyncClient and HTTPServer** - classes responsible for respectively acting as an HTTP client and server, for sending and receiving requests to each other
+* **HTTPListener** - class responsible for handling incoming HTTP client connections
+* **HTTPSession** - class responsible for representing a particular active HTTP connection (includes the **HTTPQueue** helper class for pipelining requests and responses)
+* **jsonrpc** - namespace responsible for dealing with JSON-RPC requests, including all the supported commands and their respective data parsing
+
+Inside the `p2p` subfolder:
 
 * **Broadcaster** - specifically responsible for handling broadcast messages (e.g. a new block being broadcast to all nodes)
 * **ManagerBase and derivatives** (ManagerNormal, ManagerDiscovery) - responsible for managing a list of several session connections, their inter-communications and lifecycles

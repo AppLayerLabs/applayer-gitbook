@@ -8,6 +8,8 @@ BDK nodes use an in-disk database for storing data about themselves and other no
 
 The database itself is an abstraction of a [Speedb](https://github.com/speedb-io/speedb) database - a simple key/value database, but handled in a different way: keys use *prefixes*, which makes it possible to batch read and write, so we can get around the "simple key/value" limitation and divide data into logical sectors.
 
+For contract events specifically, there is a separate [SQLite](https://sqlite.org) abstraction used for better querying capabilities. The rest of this section is related to the Speedb part.
+
 ## General overview
 
 The database requires a filesystem path to open it (if it already exists) or create it on the spot (if it doesn't exist) during construction. It closes itself automatically on destruction. Optionally, it also accepts a bool for enabling compression (disabled by default), if needed.
@@ -28,19 +30,19 @@ There's also a **DBPrefix** namespace for referencing the database's prefixes in
 
 Here's a list of available prefixes from DBPrefix (they're accessed like `DBPrefix::label`, where you change `label` for one of the desired names below):
 
-| Descriptor         | Prefix |
-| ------------------ | ------ |
-| blocks             | 0x0001 |
-| heightToBlock      | 0x0002 |
-| nativeAccounts     | 0x0003 |
-| txToBlock          | 0x0004 |
-| rdPoS              | 0x0005 |
-| contracts          | 0x0006 |
-| contractManager    | 0x0007 |
-| events             | 0x0008 |
-| vmStorage          | 0x0009 |
-| txToAdditionalData | 0x000A |
-| txToCallTrace      | 0x000B |
+| Descriptor          | Prefix |
+| ------------------- | ------ |
+| blocks              | 0x0001 |
+| heightToBlock       | 0x0002 |
+| nativeAccounts      | 0x0003 |
+| txToBlock           | 0x0004 |
+| rdPoS               | 0x0005 |
+| contracts           | 0x0006 |
+| contractManager     | 0x0007 |
+| events (DEPRECATED) | 0x0008 |
+| vmStorage           | 0x0009 |
+| txToAdditionalData  | 0x000A |
+| txToCallTrace       | 0x000B |
 
 ### blocks
 
@@ -117,9 +119,9 @@ Used to store a contract class name based on their address.
 | ------------------------- | ------------------- |
 | Prefix + Contract Address | Contract Class Name |
 
-### events
+### events (DEPRECATED)
 
-Used to store events emitted from contracts.
+Previously used to store events emitted from contracts. Replaced by the SQLite abstraction. DO NOT USE.
 
 | Key                                                                                                              | Value                                  |
 | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
