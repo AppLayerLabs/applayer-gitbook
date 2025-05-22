@@ -1,5 +1,5 @@
 ---
-description: Start building on AppLayer today
+description: Start building on AppLayer today!
 ---
 
 # Get in touch

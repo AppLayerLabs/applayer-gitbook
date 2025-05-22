@@ -1,5 +1,5 @@
 ---
-description: Where to follow AppLayer on social media.
+description: Where to follow AppLayer on social media
 ---
 
 # Join our Community
